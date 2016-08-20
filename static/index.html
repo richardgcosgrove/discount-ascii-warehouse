@@ -106,8 +106,8 @@
 
                         $('.products').append(
                             `<div class="product container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
-                                <div class="product__face" style="font-size: ${item.size}px; margin-bottom:20px">${item.face}</div>
-                                <div class="product__size">size: ${item.size}px</div>
+                                <div class="product__face" style="font-size: ${item.size}px; float: left; margin-left:20px">${item.face}</div>
+                                <div class="product__size" style="margin-top:100px;">size: ${item.size}px</div>
                                 <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
                                 <div class="product__date">date: ${date}</div>
                             </div>`
@@ -201,6 +201,7 @@
                     // Each time the user scrolls
                     win.scroll(function() {
                         // End of the document reached?
+                        if (($(document).height() - win.height()) <= (win.scrollTop() + 800)) {
                             addRows();
                             
                             //waits to add new data to pending until UI is done
