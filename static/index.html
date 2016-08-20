@@ -5,18 +5,43 @@
     </head>
     <body>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script>
+            const ads = [];
+
+            function getAd() {
+                let i = 0;
+                offset = 0;
+
+                function hasAd(num) {
+                    return ads.indexOf(num) != -1;
+                }
+
+                // for (; i; ++i) {
+                    let newAd = Math.floor(ads.length * 0.0001) + Math.floor(Math.random() * 10000);
+                    while (hasAd(newAd)) {
+                        newAd = Math.floor(ads.length * 0.0001) + Math.floor(Math.random() * 10000);
+                    }
+                    ads.push(newAd);
+                    return newAd;
+                // }
+            }
+            window.getAd = getAd;
+
+        </script>
         <header>
             <h1>Discount Ascii Warehouse</h1>
 
             <p>Here you're sure to find a bargain on some of the finest ascii available to purchase. Be sure to peruse our selection of ascii faces in an exciting range of sizes and prices.</p>
 
-            <p>But first, a word from our sponsors:</p> <script>document.write('<img class="ad" src="/ad/?r=' + Math.floor(Math.random()*1000) + '"/>');</script>
+            <p>But first, a word from our sponsors:</p> <script>
+            document.write(`<img class="ad" src="/ad/?r=${window.getAd()}"/>`);
+            </script>
         </header>
 
         <section class="products">
             <script>
-                const productHeight = 150;
-                const productWidth = 500;
+                const productHeight = 170;
+                const productWidth = 510;
                 let products = [];
                 let pending = [];
 
@@ -35,10 +60,16 @@
                     return res;
                 }
 
-                var lastAd = false;
+                let lastAd = false;
+                let resort = false;
 
                 function addItem(item) {
                     let target = item;
+
+                    if (!resort
+                        && products.indexOf(item) !== -1) {
+                        return;
+                    }
 
                     if (pending.indexOf(item) == -1 &&
                         pending.length > 0) {
@@ -49,7 +80,7 @@
                     if (!lastAd && (products.length + 1) % 20 === 0) {
                         lastAd = true;
 
-                        $('.products').append(`<div class="product container" style="width:${productWidth}px; float: left;margin: 0px 17px;"><img class="ad" src="/ad/?r=${Math.floor(Math.random()*1000)}"/></div>`);
+                        $('.products').append(`<div class="product container" style="width:${productWidth}px; height:${productHeight+30}px; float: left; margin: 12px 12px;"><img class="ad" src="/ad/?r=${window.getAd()}"/></div>`);
                         pending.push(item);
                     } else {
                         lastAd = false;
@@ -61,8 +92,10 @@
                                 <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
                                 <div class="product__date">date: ${item.date}</div>
                             </div>`
-                        );  
-                        products.push(item); 
+                        );
+                        if (!resort) {
+                            products.push(item);
+                        } 
                     }
                 }
 
@@ -90,9 +123,9 @@
                     }, 'text');
                 }
 
-                function addRow() {
+                function addRow(num = 2) {
                     if (pending.length > 0) {
-                        const length = getCount();
+                        const length = getCount() * num;
                         pending.slice(0,length).map(item => {
                             addItem(item);
                         });
@@ -138,13 +171,18 @@
                 }
 
                 addRows(count);
-                pendRows(4);
+                pendRows(8);
 
                 setTimeout(() => {
                     window.onscroll = () => {
                         if ($('#end:visible')) {
                             addRow();
-                            pendRows(1);
+                            setTimeout(() => {
+                                pendRows(2);
+                                if (pending.length < 20) {
+                                    pendRows(4);
+                                }
+                            })
                         }
                     };
                 }, 200);
