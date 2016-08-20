@@ -15,6 +15,9 @@
 
         <section class="products">
             <script>
+                const productHeight = 150;
+                let products = [];
+
                 function getDocHeight() {
                     var D = document;
                     return Math.max(
@@ -26,32 +29,36 @@
 
                 function addRows(rows = 1) {
                     $.get(`/api/products?limit=${3*rows}`, function(data) {
+
                         let json = '['.concat(data.replace(/\n/g,','))
-
-                        json = json.substr(0,json.length - 1)
-                        json = json.concat(']')
-
-                        json = JSON.parse(json)
+                        json = json.substr(0,json.length - 1);
+                        json = json.concat(']');
+                        json = JSON.parse(json);
 
                         $.each(json, function(key,item) {
-                            $('.products').append(
-                                `<div class="product container" style="width:32%; float: left; height: 150px; border:5px solid black; margin: 2px">
-                                    <div class="product__face" style="font-size: ${item.size}px">${item.face}</div>
-                                    <div class="product__size">size: ${item.size}px</div>
-                                    <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
-                                    <div class="product__date">date: ${item.date}</div>
-                                </div>`
-                            )
+                            products.push(item);
+                            if (products.length % 20 === 0) {
+                                $('.products').append(`<div class="product container" style="width:500px; float: left;margin: 0px 17px;"><img class="ad" src="/ad/?r=${Math.floor(Math.random()*1000)}"/></div>`);
+                            } else {
+                                $('.products').append(
+                                    `<div class="product container" style="width:500px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
+                                        <div class="product__face" style="font-size: ${item.size}px">${item.face}</div>
+                                        <div class="product__size">size: ${item.size}px</div>
+                                        <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
+                                        <div class="product__date">date: ${item.date}</div>
+                                    </div>`
+                                );
+                            }
                         } )
                     }, 'text');
                 }
 
 
                 $('body').append(`<div class="products__end" style="float:left;text-align:center; width:100%" >~ end of catalogue ~</div>`);
-                const originalHeight =$(window).scrollTop() + $(window).height();
+                const originalHeight = getDocHeight();
                 const originalBody = $('body').height();
                 let count=0;
-                for (let i=0; i + originalBody < originalHeight; i += 200) {
+                for (let i=productHeight + 50; i + originalBody < originalHeight; i += productHeight + 50) {
                     ++count;
                 }
                 addRows(count);
