@@ -4,6 +4,7 @@
         <title>Discount Ascii Warehouse</title>
     </head>
     <body>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <header>
             <h1>Discount Ascii Warehouse</h1>
 
@@ -13,7 +14,17 @@
         </header>
 
         <section class="products">
-            ... products go here ...
+            products go here...
+            <script>
+                $.get('/api/products', function(data) {
+                    let json = '['.concat(data.replace(/\n/g,','));
+
+                    json = json.substr(0,json.length - 1);
+                    json = json.concat(']');
+
+                    json = JSON.parse(json);
+                }, 'text');
+            </script>
         </section>
     </body>
 </html>
