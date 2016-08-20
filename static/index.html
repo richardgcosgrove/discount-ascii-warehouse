@@ -16,7 +16,9 @@
         <section class="products">
             <script>
                 const productHeight = 150;
+                const productWidth = 500;
                 let products = [];
+                let pending = [];
 
                 function getDocHeight() {
                     var D = document;
@@ -27,8 +29,85 @@
                     );
                 }
 
+                function getCount() {
+                    var D = document;
+                    return Math.ceil(Math.max(document.documentElement["clientWidth"], document.body["scrollWidth"], document.documentElement["scrollWidth"], document.body["offsetWidth"], document.documentElement["offsetWidth"]) / (productWidth + 20));
+                    return res;
+                }
+
+                var lastAd = false;
+
+                function addItem(item) {
+                    let target = item;
+
+                    if (pending.indexOf(item) == -1 &&
+                        pending.length > 0) {
+                        target = pending.splice(0,1);
+                        pending.push(item);
+                    }
+
+                    if (!lastAd && (products.length + 1) % 20 === 0) {
+                        lastAd = true;
+
+                        $('.products').append(`<div class="product container" style="width:${productWidth}px; float: left;margin: 0px 17px;"><img class="ad" src="/ad/?r=${Math.floor(Math.random()*1000)}"/></div>`);
+                        pending.push(item);
+                    } else {
+                        lastAd = false;
+
+                        $('.products').append(
+                            `<div class="product container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
+                                <div class="product__face" style="font-size: ${item.size}px">${item.face}</div>
+                                <div class="product__size">size: ${item.size}px</div>
+                                <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
+                                <div class="product__date">date: ${item.date}</div>
+                            </div>`
+                        );  
+                        products.push(item); 
+                    }
+                }
+
                 function addRows(rows = 1) {
-                    $.get(`/api/products?limit=${3*rows}`, function(data) {
+                    $.get(`/api/products?limit=${getCount()*rows-pending.length}`, function(data) {
+                        if (data.length > 0) {
+                        let json = '['.concat(data.replace(/\n/g,','))
+                        json = json.substr(0,json.length - 1);
+                        json = json.concat(']');
+                        json = JSON.parse(json);
+
+                        if (pending.length > 0) {
+                            pending.map(item => {
+                                addItem(item);
+                            });
+
+                            pending = [];
+                        }
+
+                        $.each(json, function(key,item) {
+                            addItem(item);
+                        });
+
+                        }
+                    }, 'text');
+                }
+
+                function addRow() {
+                    if (pending.length > 0) {
+                        const length = getCount();
+                        pending.slice(0,length).map(item => {
+                            addItem(item);
+                        });
+
+                        pending = pending.slice(length-1);
+                    }
+
+                }
+
+                function pendRows(rows = 1) {
+                    let length = getCount()*rows-pending.length;
+                    if (length < 0) {
+                        return;
+                    }
+                    $.get(`/api/products?limit=${getCount()*rows-pending.length}`, function(data) {
 
                         let json = '['.concat(data.replace(/\n/g,','))
                         json = json.substr(0,json.length - 1);
@@ -36,32 +115,39 @@
                         json = JSON.parse(json);
 
                         $.each(json, function(key,item) {
-                            products.push(item);
-                            if (products.length % 20 === 0) {
-                                $('.products').append(`<div class="product container" style="width:500px; float: left;margin: 0px 17px;"><img class="ad" src="/ad/?r=${Math.floor(Math.random()*1000)}"/></div>`);
-                            } else {
-                                $('.products').append(
-                                    `<div class="product container" style="width:500px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
-                                        <div class="product__face" style="font-size: ${item.size}px">${item.face}</div>
-                                        <div class="product__size">size: ${item.size}px</div>
-                                        <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
-                                        <div class="product__date">date: ${item.date}</div>
-                                    </div>`
-                                );
-                            }
-                        } )
+                            pending.push(item);
+                        });
                     }, 'text');
                 }
 
+                function isScrolledIntoView(el) {
+                    var elemTop = el.getBoundingClientRect().top;
+                    var elemBottom = el.getBoundingClientRect().bottom;
 
-                $('body').append(`<div class="products__end" style="float:left;text-align:center; width:100%" >~ end of catalogue ~</div>`);
+                    var isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
+                    return isVisible;
+                }
+
+
+                $('body').append(`<div id="end" class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
                 const originalHeight = getDocHeight();
                 const originalBody = $('body').height();
                 let count=0;
                 for (let i=productHeight + 50; i + originalBody < originalHeight; i += productHeight + 50) {
                     ++count;
                 }
+
                 addRows(count);
+                pendRows(4);
+
+                setTimeout(() => {
+                    window.onscroll = () => {
+                        if ($('#end:visible')) {
+                            addRow();
+                            pendRows(1);
+                        }
+                    };
+                }, 200);
             </script>
         </section>
     </body>
