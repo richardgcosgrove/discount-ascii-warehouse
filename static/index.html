@@ -39,7 +39,7 @@
         <section class="products">
             <script>
                 const productHeight = 200;
-                const productWidth = 450;
+                const productWidth = 470;
                 let itemsLength = 0;
                 let adCount = 0;
                 let products = [];
@@ -56,7 +56,7 @@
 
                 function getCol() {
                     var D = document;
-                    console.log(`${$('.products').width()} / ${(productWidth + 20)}`)
+                    // console.log(`${$('.products').width()} / ${(productWidth + 20)}`)
                     return Math.ceil($('.products').width() / (productWidth + 20));
                 }
 
@@ -88,7 +88,11 @@
                         ++itemsLength;
                         ++adCount;
 
-                        $('.products').append(`<div class="pproduct container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px"><img class="ad" src="/ad/?r=${window.getAd()}"/></div>`);
+                        $('.products')
+                        .append(
+                        `<div class="pproduct container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
+                            <img class="ad" src="/ad/?r=${window.getAd()}"/>
+                        </div>`);
                         pending.push(item);
                     } else {
                         lastAd = false;
@@ -104,7 +108,8 @@
                         }
 
 
-                        $('.products').append(
+                        $('.products')
+                        .append(
                             `<div class="product container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
                                 <div class="product__face" style="font-size: ${item.size}px; float: left; margin-left:20px">${item.face}</div>
                                 <div class="product__size" style="margin-top:100px;">size: ${item.size}px</div>
@@ -126,20 +131,18 @@
                         const itemsToAdd = (col * num) - length;
                         const oldAdCount = adCount;
                         let i = 0;
-                        console.log(`col:${col}`);
-                        console.log(`${itemsLength} + ${itemsToAdd} = ${itemsLength + itemsToAdd}`);
+                        // console.log(`col:${col}`);
+                        // console.log(`${itemsLength} + ${itemsToAdd} = ${itemsLength + itemsToAdd}`);
 
                         pending.map(item => {
                             if (i < itemsToAdd) {
                                 if (addItem(item)) {
-                                    console.log('added');
                                     if (++i > itemsToAdd) {
                                         return;
                                     }
 
                                     if (lastAd) {
                                         if (addItem(item)) {
-                                            console.log('added');
                                             if (++i > itemsToAdd) {
                                                 return;
                                             }
@@ -153,36 +156,69 @@
                     }
 
                 }
+                
+                //thanks underscore.js!
+                function debounce(func, wait, immediate) {
+                    var timeout;
+                    return function() {
+                        var context = this, args = arguments;
+                        var later = function() {
+                            timeout = null;
+                            if (!immediate) func.apply(context, args);
+                        };
+                        var callNow = immediate && !timeout;
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                        if (callNow) func.apply(context, args);
+                    };
+                };
+
+                const pendingQeueMax = 1000;
+                let pendingAction;
+                let pendingQueue;
 
                 function pendRows(rows = 1) {
                     let length = getCol()*rows-pending.length;
                     if (length < 0) {
                         return;
+                    } else if (pendingAction) {
+                        pendingQueue = pendingQueue >= pendingQeueMax ? pendingQeueMax : pendingQueue + length;
+                        return;
                     }
 
-                    return $.get(`/api/products?limit=${getCol()*rows-pending.length}&skip=${itemsLength- Math.floor(products.length / 20)}`, function(data) {
+                    const action = $.get(`/api/products?limit=${getCol()*rows-pending.length}&skip=${itemsLength- Math.floor(products.length / 20)}`, function(data) {
+                        try {
+                            if (!data
+                                || data.length < 0) {
+                                return;
+                            }
+                            let json = '['.concat(data.replace(/\n/g,','))
+                            json = json.substr(0,json.length - 1);
+                            json = json.concat(']');
+                            json = JSON.parse(json);
 
-                        let json = '['.concat(data.replace(/\n/g,','))
-                        json = json.substr(0,json.length - 1);
-                        json = json.concat(']');
-                        json = JSON.parse(json);
-
-                        $.each(json, function(key,item) {
-                            pending.push(item);
-                        });
+                            $.each(json, function(key,item) {
+                                pending.push(item);
+                            });
+                        } catch (e) {
+                            console.log(e);
+                            console.log(data);
+                        }
                     }, 'text');
+
+                    action.then(() => {
+                        pendingAction = null;
+                    });
+
+                    pendingAction = action;
+
+                    return action;
                 }
 
-                function isScrolledIntoView(el) {
-                    var elemTop = el.getBoundingClientRect().top;
-                    var elemBottom = el.getBoundingClientRect().bottom;
 
-                    var isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
-                    return isVisible;
-                }
-
-
-                $('body').append(`<div id="end" class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
+                $('body')
+                .append(
+                    `<div class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
                 const originalHeight = getDocHeight();
                 const originalBody = $('body').height();
                 let count=0;
@@ -196,18 +232,22 @@
 
 
                 $(document).ready(function() {
-                    var win = $(window);
+                    const win = $(window);
 
+                    const evt = new CustomEvent('FeedData', { detail: 100 });
+                    const productsElement = document.getElementsByClassName('products')[0];
+                    productsElement.addEventListener('FeedData',debounce(() => {
+                                pendRows(100);
+                    }, 50), false);
+                    
                     // Each time the user scrolls
                     win.scroll(function() {
                         // End of the document reached?
-                        if (($(document).height() - win.height()) <= (win.scrollTop() + 800)) {
+                        if (($(document).height() - win.height()) <= (win.scrollTop() + 1200)) {
                             addRows();
-                            
-                            //waits to add new data to pending until UI is done
-                            setTimeout(() => {
-                                pendRows(2 + (pending.length < 20 ? 4 : 0));
-                            })
+                            if (pending.length < 1000) { 
+                                productsElement.dispatchEvent(evt);
+                            }
                         }
                     });
                 });
