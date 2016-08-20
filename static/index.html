@@ -173,9 +173,13 @@
                 addRows(count);
                 pendRows(8);
 
-                setTimeout(() => {
-                    window.onscroll = () => {
-                        if ($('#end:visible')) {
+                $(document).ready(function() {
+                    var win = $(window);
+
+                    // Each time the user scrolls
+                    win.scroll(function() {
+                        // End of the document reached?
+                        if ($(document).height() - win.height() == win.scrollTop()) {
                             addRow();
                             setTimeout(() => {
                                 pendRows(2);
@@ -184,8 +188,8 @@
                                 }
                             })
                         }
-                    };
-                }, 200);
+                    });
+                });
             </script>
         </section>
     </body>
