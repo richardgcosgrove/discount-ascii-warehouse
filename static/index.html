@@ -14,16 +14,47 @@
         </header>
 
         <section class="products">
-            products go here...
             <script>
-                $.get('/api/products', function(data) {
-                    let json = '['.concat(data.replace(/\n/g,','));
+                function getDocHeight() {
+                    var D = document;
+                    return Math.max(
+                        D.body.scrollHeight, D.documentElement.scrollHeight,
+                        D.body.offsetHeight, D.documentElement.offsetHeight,
+                        D.body.clientHeight, D.documentElement.clientHeight
+                    );
+                }
 
-                    json = json.substr(0,json.length - 1);
-                    json = json.concat(']');
+                function addRows(rows = 1) {
+                    $.get(`/api/products?limit=${3*rows}`, function(data) {
+                        let json = '['.concat(data.replace(/\n/g,','))
 
-                    json = JSON.parse(json);
-                }, 'text');
+                        json = json.substr(0,json.length - 1)
+                        json = json.concat(']')
+
+                        json = JSON.parse(json)
+
+                        $.each(json, function(key,item) {
+                            $('.products').append(
+                                `<div class="product container" style="width:32%; float: left; height: 150px; border:5px solid black; margin: 2px">
+                                    <div class="product__face" style="font-size: ${item.size}px">${item.face}</div>
+                                    <div class="product__size">size: ${item.size}px</div>
+                                    <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
+                                    <div class="product__date">date: ${item.date}</div>
+                                </div>`
+                            )
+                        } )
+                    }, 'text');
+                }
+
+
+                $('body').append(`<div class="products__end" style="float:left;text-align:center; width:100%" >~ end of catalogue ~</div>`);
+                const originalHeight =$(window).scrollTop() + $(window).height();
+                const originalBody = $('body').height();
+                let count=0;
+                for (let i=0; i + originalBody < originalHeight; i += 200) {
+                    ++count;
+                }
+                addRows(count);
             </script>
         </section>
     </body>
