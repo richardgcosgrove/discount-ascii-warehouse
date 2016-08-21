@@ -35,41 +35,24 @@
             document.write(`<img class="ad" src="/ad/?r=${window.getAd()}"/>`);
             </script>
         </header>
-
+        <section class="loading" style="font-size: 100px; position: fixed; top:50%; left:50%; display: none">
+            <span class="loading__text">Loading...</span>
+        </section>
         <section class="products">
             <script>
+                let adCount = 0;
+                let itemsLength = 0;
+                let lastAd = true;
+                let pending = [];
+                let pendingAction;
+                let pendingQueue;
+                const pendingQeueMax = 1000;
+                let products = [];
                 const productHeight = 200;
                 const productWidth = 470;
-                let itemsLength = 0;
-                let adCount = 0;
-                let products = [];
-                let pending = [];
-
-                function getDocHeight() {
-                    var D = document;
-                    return Math.max(
-                        D.body.scrollHeight, D.documentElement.scrollHeight,
-                        D.body.offsetHeight, D.documentElement.offsetHeight,
-                        D.body.clientHeight, D.documentElement.clientHeight
-                    );
-                }
-
-                function getCol() {
-                    var D = document;
-                    // console.log(`${$('.products').width()} / ${(productWidth + 20)}`)
-                    return Math.ceil($('.products').width() / (productWidth + 20));
-                }
-
-                function pad(n, width, z) {
-                    z = z || '0';
-                    n = n + '';
-                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-                }
-
-                let lastAd = true;
                 let resort = false;
 
-                function addItem(item) {
+                function addProduct(item) {
                     let target = item;
 
                     if (!resort
@@ -122,7 +105,7 @@
                         } 
                     }
                     return true;
-                }
+                };
 
                 function addRows(num = 2) {
                     if (pending.length > 0) {
@@ -136,13 +119,13 @@
 
                         pending.map(item => {
                             if (i < itemsToAdd) {
-                                if (addItem(item)) {
+                                if (addProduct(item)) {
                                     if (++i > itemsToAdd) {
                                         return;
                                     }
 
                                     if (lastAd) {
-                                        if (addItem(item)) {
+                                        if (addProduct(item)) {
                                             if (++i > itemsToAdd) {
                                                 return;
                                             }
@@ -154,8 +137,7 @@
 
                         pending = pending.slice(itemsToAdd - (1 + (adCount - oldAdCount)));
                     }
-
-                }
+                };
                 
                 //thanks underscore.js!
                 function debounce(func, wait, immediate) {
@@ -173,9 +155,26 @@
                     };
                 };
 
-                const pendingQeueMax = 1000;
-                let pendingAction;
-                let pendingQueue;
+                function getCol() {
+                    var D = document;
+                    // console.log(`${$('.products').width()} / ${(productWidth + 20)}`)
+                    return Math.ceil($('body').width() / (productWidth + 20));
+                };
+
+                function getDocHeight() {
+                    var D = document;
+                    return Math.max(
+                        D.body.scrollHeight, D.documentElement.scrollHeight,
+                        D.body.offsetHeight, D.documentElement.offsetHeight,
+                        D.body.clientHeight, D.documentElement.clientHeight
+                    );
+                };
+
+                function pad(n, width, z) {
+                    z = z || '0';
+                    n = n + '';
+                    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                };
 
                 function pendRows(rows = 1) {
                     let length = getCol()*rows-pending.length;
@@ -213,12 +212,8 @@
                     pendingAction = action;
 
                     return action;
-                }
+                };
 
-
-                $('body')
-                .append(
-                    `<div class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
                 const originalHeight = getDocHeight();
                 const originalBody = $('body').height();
                 let count=0;
@@ -227,6 +222,9 @@
                 }
 
                 pendRows(count+4).then(() => {
+                $('body')
+                .append(
+                    `<div class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
                     addRows(count);
                 });
 
@@ -238,7 +236,7 @@
                     const productsElement = document.getElementsByClassName('products')[0];
                     productsElement.addEventListener('FeedData',debounce(() => {
                                 pendRows(100);
-                    }, 50), false);
+                    }, 100), false);
                     
                     // Each time the user scrolls
                     win.scroll(function() {
