@@ -3,10 +3,15 @@
 background-image: linear-gradient(90deg, transparent 50%, rgba(0,0,0,.5) 50%);
 background-size: 50px 50px;">
     <head>
-        <link rel="stylesheet" href="styles/styles.min.css">
+        <!--build:css styles/styles.min.css -->
+        <link rel="stylesheet" type="text/css" href="styles/styles.css">
+        <!-- endbuild -->
 
         <script type="text/javascript" src="js/jquery.min.js"></script>
-        <script src="js/lib.min.js"></script>
+        <!--build:js js/lib.min.js -->
+        <script type="text/javascript" src="../build/js/ads.js"></script>
+        <script type="text/javascript" src="../build/js/products.js"></script>
+        <!-- endbuild -->
         <title>Discount Ascii Warehouse</title>
     </head>
     <body> 
@@ -32,6 +37,8 @@ background-size: 50px 50px;">
         </div>
         <section class="products"></section>
         <div class="endOfTheLine">~ end of catalogue ~</div>
-        <script src="js/main.min.js"></script>
+        <!--build:js js/main.min.js -->
+        <script type="text/javascript" src="../build/js/main.js"></script>
+        <!-- endbuild -->
     </body>
 </html>
