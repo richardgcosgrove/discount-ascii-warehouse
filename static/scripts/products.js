@@ -3,7 +3,6 @@ let itemsLength = 0;
 let lastAd = true;
 let pending = [];
 let pendingAction;
-let pendingQueue;
 const pendingQeueMax = 1000;
 let products = [];
 const productHeight = 200;
@@ -12,7 +11,6 @@ let sort = '';
 
 function addAd(item) {
     lastAd = true;
-    ++itemsLength;
     ++adCount;
 
     $('.products')
@@ -20,7 +18,7 @@ function addAd(item) {
     `<div class="product container" style="">
         <img class="product__ad" src="/ad/?r=${getAd()}"/>
     </div>`);
-    pending.push(item);
+    pending.unshift(item);
 
 }
 
@@ -31,23 +29,20 @@ function addAdOrProduct(item) {
         return false;
     }
 
-    if (pending.indexOf(item) == -1 &&
-        pending.length > 0) {
-        target = pending.splice(0,1);
-        pending.push(item);
-    }
+    ++itemsLength;
 
-    if (!lastAd && itemsLength % 20 === 0) {
+    if (!lastAd 
+        && (itemsLength - 1) % 20 === 0) {
         addAd(target);
     } else {
         addProduct(target);
     }
+
     return true;
 };
 
 function addProduct(item) {
     lastAd = false;
-    ++itemsLength;
     let date = new Date(item.date);
     let old = Date.now() - date.getTime();
 
@@ -80,18 +75,22 @@ function addRows(num = 2) {
         const itemsToAdd = (col * num) - length;
         const oldAdCount = adCount;
         let i = 0;
-        // console.log(`col:${col}`);
-        // console.log(`${itemsLength} + ${itemsToAdd} = ${itemsLength + itemsToAdd}`);
+        
+        const queue = pending.slice(0, itemsToAdd);
 
-        pending.map(item => {
+        queue.map(item => {
             if (i < itemsToAdd) {
                 if (addAdOrProduct(item)) {
+                    pending.shift();
+
                     if (++i > itemsToAdd) {
                         return;
                     }
 
                     if (lastAd) {
                         if (addAdOrProduct(item)) {
+                            pending.shift();
+
                             if (++i > itemsToAdd) {
                                 return;
                             }
@@ -100,8 +99,6 @@ function addRows(num = 2) {
                 }
             }
         });
-
-        pending = pending.slice(itemsToAdd - (1 + (adCount - oldAdCount)));
     }
 };
 
@@ -128,7 +125,6 @@ function debounce(func, wait, immediate) {
 
 function getCol() {
     var D = document;
-    // console.log(`${$('.products').width()} / ${(productWidth + 20)}`)
     return Math.ceil($('body').width() / (productWidth + 20));
 };
 
@@ -145,7 +141,6 @@ function load() {
     adCount = 1;
     lastAd = true;
     pending = [];
-    pendingQueue = 0;
     products = [];
     pending = [];
     pendingAction = null;
@@ -180,23 +175,23 @@ function pad(n, width, z) {
 
 function pendRows(rows = 1) {
 
-    let length = getCol() * (rows + pendingQueue) - pending.length;
+    let length = getCol() * rows;
 
     if (length < 0) {
         return;
     } else if (pendingAction) {
-        pendingQueue = pendingQueue >= pendingQeueMax ? pendingQeueMax : pendingQueue + length;
         return;
     }
 
-    const action = $.get(`/api/products?limit=${getCol()*rows-pending.length}` + 
-        `&skip=${itemsLength- Math.floor(products.length / 20)}` +
+    const action = $.get(`/api/products?limit=${length}` + 
+        `&skip=${itemsLength}` +
         (sort !== '' ? `&sort=${sort}` : ''), function(data) {
         try {
             if (!data
                 || data.length < 0) {
                 return;
             }
+
             let json = '['.concat(data.replace(/\n/g,','))
             json = json.substr(0,json.length - 1);
             json = json.concat(']');
