@@ -1,4 +1,5 @@
 {
+
   "name": "discount-ascii-warehouse",
   "private": true,
   "version": "0.2.0",
@@ -6,6 +7,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node .",
+    "prestart": "gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
