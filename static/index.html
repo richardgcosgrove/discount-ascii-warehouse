@@ -214,6 +214,9 @@
                     return action;
                 };
 
+                $('.products').hide();
+                $('.loading').slideDown('1000');
+
                 const originalHeight = getDocHeight();
                 const originalBody = $('body').height();
                 let count=0;
@@ -222,6 +225,8 @@
                 }
 
                 pendRows(count+4).then(() => {
+                    $('.loading').slideUp(500);
+                    $('.products').fadeIn(1500);
                 $('body')
                 .append(
                     `<div class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
