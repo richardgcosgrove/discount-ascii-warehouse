@@ -19,4 +19,6 @@ $(document).ready(function() {
     });
 });
 
+//$('.sortingPreference').
+
 load();

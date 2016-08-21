@@ -4,7 +4,7 @@ function generateAdId(){
     return Math.floor(Math.random() * 10000);
 }
 
-getAd = function getAd() {
+function getAd() {
 
     let newAd = generateAdId();
 
@@ -13,6 +13,6 @@ getAd = function getAd() {
     }
 
     lastAdId = newAd;
-    
+
     return newAd;
 }

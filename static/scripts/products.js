@@ -10,7 +10,21 @@ const productHeight = 200;
 const productWidth = 470;
 let resort = false;
 
-function addProduct(item) {
+function addAd() {
+    lastAd = true;
+    ++itemsLength;
+    ++adCount;
+
+    $('.products')
+    .append(
+    `<div class="pproduct container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
+        <img class="ad" src="/ad/?r=${getAd()}"/>
+    </div>`);
+    pending.push(item);
+
+}
+
+function addAdOrProduct(item) {
     let target = item;
 
     if (!resort
@@ -25,45 +39,41 @@ function addProduct(item) {
     }
 
     if (!lastAd && itemsLength % 20 === 0) {
-        lastAd = true;
-        ++itemsLength;
-        ++adCount;
-
-        $('.products')
-        .append(
-        `<div class="pproduct container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
-            <img class="ad" src="/ad/?r=${getAd()}"/>
-        </div>`);
-        pending.push(item);
+        addAd();
     } else {
-        lastAd = false;
-        ++itemsLength;
-        let date = new Date(item.date);
-        let old = Date.now() - date.getTime();
-
-        //is older than week?
-        if (old > 604800000) {
-            date = `${pad(date.getMonth(),2)}/${pad(date.getDay(),2)}/${pad(date.getFullYear(),4)}`;
-        } else {
-            date = `${Math.floor(old / 86400000)} days ago`;
-        }
-
-
-        $('.products')
-        .append(
-            `<div class="product container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
-                <div class="product__face" style="font-size: ${item.size}px; float: left; margin-left:20px">${item.face}</div>
-                <div class="product__size" style="margin-top:100px;">size: ${item.size}px</div>
-                <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
-                <div class="product__date">date: ${date}</div>
-            </div>`
-        );
-        if (!resort) {
-            products.push(item);
-        } 
+        addProduct(target);
     }
     return true;
 };
+
+function addProduct(item) {
+    lastAd = false;
+    ++itemsLength;
+    let date = new Date(item.date);
+    let old = Date.now() - date.getTime();
+
+    //is older than week?
+    if (old > 604800000) {
+        date = `${pad(date.getMonth(),2)}/${pad(date.getDay(),2)}/${pad(date.getFullYear(),4)}`;
+    } else {
+        date = `${Math.floor(old / 86400000)} days ago`;
+    }
+
+
+    $('.products')
+    .append(
+        `<div class="product container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
+            <div class="product__face" style="font-size: ${item.size}px; float: left; margin-left:20px">${item.face}</div>
+            <div class="product__size" style="margin-top:100px;">size: ${item.size}px</div>
+            <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
+            <div class="product__date">date: ${date}</div>
+        </div>`
+    );
+    if (!resort) {
+        products.push(item);
+    } 
+
+}
 
 function addRows(num = 2) {
     if (pending.length > 0) {
@@ -77,13 +87,13 @@ function addRows(num = 2) {
 
         pending.map(item => {
             if (i < itemsToAdd) {
-                if (addProduct(item)) {
+                if (addAdOrProduct(item)) {
                     if (++i > itemsToAdd) {
                         return;
                     }
 
                     if (lastAd) {
-                        if (addProduct(item)) {
+                        if (addAdOrProduct(item)) {
                             if (++i > itemsToAdd) {
                                 return;
                             }
@@ -96,6 +106,10 @@ function addRows(num = 2) {
         pending = pending.slice(itemsToAdd - (1 + (adCount - oldAdCount)));
     }
 };
+
+function changeSort() {
+
+}
 
 //thanks underscore.js!
 function debounce(func, wait, immediate) {
@@ -158,7 +172,9 @@ function pad(n, width, z) {
 };
 
 function pendRows(rows = 1) {
+
     let length = getCol()*rows-pending.length;
+    
     if (length < 0) {
         return;
     } else if (pendingAction) {
