@@ -19,6 +19,8 @@ $(document).ready(function() {
     });
 });
 
-//$('.sortingPreference').
+$('.sortingPreference').on('change', function() {
+    changeSort(this.value);
+});
 
 load();

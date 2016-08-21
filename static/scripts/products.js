@@ -8,17 +8,17 @@ const pendingQeueMax = 1000;
 let products = [];
 const productHeight = 200;
 const productWidth = 470;
-let resort = false;
+let sort = '';
 
-function addAd() {
+function addAd(item) {
     lastAd = true;
     ++itemsLength;
     ++adCount;
 
     $('.products')
     .append(
-    `<div class="pproduct container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
-        <img class="ad" src="/ad/?r=${getAd()}"/>
+    `<div class="product container" style="">
+        <img class="product__ad" src="/ad/?r=${getAd()}"/>
     </div>`);
     pending.push(item);
 
@@ -27,8 +27,7 @@ function addAd() {
 function addAdOrProduct(item) {
     let target = item;
 
-    if (!resort
-        && products.indexOf(item) !== -1) {
+    if (products.indexOf(item) !== -1) {
         return false;
     }
 
@@ -39,7 +38,7 @@ function addAdOrProduct(item) {
     }
 
     if (!lastAd && itemsLength % 20 === 0) {
-        addAd();
+        addAd(target);
     } else {
         addProduct(target);
     }
@@ -54,7 +53,7 @@ function addProduct(item) {
 
     //is older than week?
     if (old > 604800000) {
-        date = `${pad(date.getMonth(),2)}/${pad(date.getDay(),2)}/${pad(date.getFullYear(),4)}`;
+        date = `${pad(date.getMonth(), 2)}/${pad(date.getDate(), 2)}/${pad(date.getFullYear(), 4)}`;
     } else {
         date = `${Math.floor(old / 86400000)} days ago`;
     }
@@ -62,16 +61,15 @@ function addProduct(item) {
 
     $('.products')
     .append(
-        `<div class="product container" style="width:${productWidth}px; float: left; height: ${productHeight}px; border:5px solid black; margin: 2px; padding: 20px 5px">
-            <div class="product__face" style="font-size: ${item.size}px; float: left; margin-left:20px">${item.face}</div>
-            <div class="product__size" style="margin-top:100px;">size: ${item.size}px</div>
+        `<div class="product container">
+            <div class="product__face" style="font-size: ${item.size}px" >${item.face}</div>
+            <div class="product__size" >size: ${item.size}px</div>
             <div class="product__price">price: $${(item.price * .01).toFixed(2)}</div>
             <div class="product__date">date: ${date}</div>
         </div>`
     );
-    if (!resort) {
-        products.push(item);
-    } 
+
+    products.push(item);
 
 }
 
@@ -107,8 +105,9 @@ function addRows(num = 2) {
     }
 };
 
-function changeSort() {
-
+function changeSort(newSort) {
+    sort = newSort;
+    load();
 }
 
 //thanks underscore.js!
@@ -143,8 +142,17 @@ function getDocHeight() {
 };
 
 function load() {
+    adCount = 1;
+    lastAd = true;
+    pending = [];
+    pendingQueue = 0;
+    products = [];
+    pending = [];
+    pendingAction = null;
+    itemsLength = 0;
 
     $('.products').empty();
+    $('.endOfTheLine').hide();
     $('.products').hide();
     $('.loading').slideDown('1000');
 
@@ -155,13 +163,12 @@ function load() {
         ++count;
     }
 
-    pendRows(count+4).then(() => {
-        $('.loading').slideUp(500);
-        $('.products').fadeIn(1500);
-    $('body')
-    .append(
-        `<div class="products__end" style="float:left;text-align:center; height: 100px; width:100%" >~ end of catalogue ~</div>`);
-        addRows(count);
+    pendRows(count+8).then(() => {
+        $('.loading').slideUp(500, () => {
+            addRows(count);
+            $('.products').fadeIn(1500);
+            $('.endOfTheLine').show();
+        });
     });
 };
 
@@ -173,8 +180,8 @@ function pad(n, width, z) {
 
 function pendRows(rows = 1) {
 
-    let length = getCol()*rows-pending.length;
-    
+    let length = getCol() * (rows + pendingQueue) - pending.length;
+
     if (length < 0) {
         return;
     } else if (pendingAction) {
@@ -182,7 +189,9 @@ function pendRows(rows = 1) {
         return;
     }
 
-    const action = $.get(`/api/products?limit=${getCol()*rows-pending.length}&skip=${itemsLength- Math.floor(products.length / 20)}`, function(data) {
+    const action = $.get(`/api/products?limit=${getCol()*rows-pending.length}` + 
+        `&skip=${itemsLength- Math.floor(products.length / 20)}` +
+        (sort !== '' ? `&sort=${sort}` : ''), function(data) {
         try {
             if (!data
                 || data.length < 0) {

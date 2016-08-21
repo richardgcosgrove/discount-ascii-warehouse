@@ -1,0 +1,60 @@
+.discount__header {
+    color: white;
+}
+
+.endOfTheLine {
+    color: white;
+    font-size: 40px;
+    float: left;
+    height: 100px;
+    text-align: center;
+    width:100%;
+}
+
+.header {
+    color: white;
+    margin-top: 50px;
+}
+
+.loading {
+    color: white;
+    display: none;
+    font-size: 100px;
+    left: 50%;
+    position: fixed; 
+    top: 50%;
+}
+
+.product {
+    background-color: white;
+    border:5px solid black;
+    float: left;
+    height: 200px;
+    margin: 2px;
+    padding: 20px 5px;
+    width: 470px;
+}
+
+.product__face {
+    float: left;
+    margin-left: 20px;
+}
+
+.product__size {
+    margin-top: 100px;
+}
+
+.menu {
+    background-color: #FFF056;
+    height: 50px;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+.sortingPreference {
+    float: right;
+    font-size: 40px;
+    margin-right: 10px;
+}

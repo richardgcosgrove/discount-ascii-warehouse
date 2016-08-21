@@ -1,31 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html style="background-color: gray;
+background-image: linear-gradient(90deg, transparent 50%, rgba(0,0,0,.5) 50%);
+background-size: 50px 50px;">
     <head>
-        <title>Discount Ascii Warehouse</title>
-    </head>
-    <body>
+        <link rel="stylesheet" type="text/css" href="styles/styles.css">
         <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="scripts/ads.js"></script>
-        <header>
-            <h1>Discount Ascii Warehouse</h1>
+        <script type="text/javascript" src="scripts/products.js"></script>
+        <title>Discount Ascii Warehouse</title>
+    </head>
+    <body> 
+        <header class="discount__header" >
+            <h1 class="header">Discount Ascii Warehouse</h1>
 
-            <p>Here you're sure to find a bargain on some of the finest ascii available to purchase. Be sure to peruse our selection of ascii faces in an exciting range of sizes and prices.</p>
+            <p class="discount__info">Here you're sure to find a bargain on some of the finest ascii available to purchase. Be sure to peruse our selection of ascii faces in an exciting range of sizes and prices.</p>
 
-            <p>But first, a word from our sponsors:</p> <script>
+            <p class="discount__info">But first, a word from our sponsors:</p> <script>
             document.write(`<img class="ad" src="/ad/?r=${getAd()}"/>`);
             </script>
         </header>
-        <section class="loading" style="font-size: 100px; position: fixed; top:50%; left:50%; display: none">
+        <section class="loading" >
             <span class="loading__text">Loading...</span>
         </section>
-        <select class="sortingPreference" style="font-size: 40px;">
-            <option value="">Sort by...</option>
-            <option value="size">size</option>
-            <option value="price">price</option>
-            <option value="date">date</option>
-        </select>
+        <div class="menu">
+            <select class="sortingPreference">
+                <option value="">Sort by...</option>
+                <option value="size">size</option>
+                <option value="price">price</option>
+                <option value="date">date</option>
+            </select>
+        </div>
         <section class="products"></section>
-        <script type="text/javascript" src="scripts/products.js"></script>
+        <div class="endOfTheLine">~ end of catalogue ~</div>
         <script type="text/javascript" src="scripts/main.js"></script>
     </body>
 </html>
