@@ -1,20 +1,26 @@
 "use strict";
 
-var lastAdId = null;
+var adsController = function () {
+    var lastAdId = null;
 
-function generateAdId() {
-    return Math.floor(Math.random() * 10000);
-}
-
-function getAd() {
-
-    var newAd = generateAdId();
-
-    while (lastAdId === newAd) {
-        newAd = generateAdId();
+    function generateAdId() {
+        return Math.floor(Math.random() * 10000);
     }
 
-    lastAdId = newAd;
+    var getAd = function getAd() {
 
-    return newAd;
-}
+        var newAd = generateAdId();
+
+        while (lastAdId === newAd) {
+            newAd = generateAdId();
+        }
+
+        lastAdId = newAd;
+
+        return newAd;
+    };
+
+    return {
+        getAd: getAd
+    };
+}();

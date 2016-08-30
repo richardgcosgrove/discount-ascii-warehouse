@@ -14,13 +14,17 @@ gulp.task('babel', function() {
     .pipe(gulp.dest('build/js'))
 });
 
-gulp.task('useref', function() {
+gulp.task('useref', ['babel'], function() {
   return gulp.src('src/*.html')
     .pipe(useref())
     .pipe(gulpIf('*.js', uglify()))
     // Minifies only if it's a CSS file
     .pipe(gulpIf('*.css', cssnano()))
     .pipe(gulp.dest('static'))
+});
+
+gulp.task('watch', function() {
+  gulp.watch(['src/js/*.js','src/styles/*.css','src/index.html'], ['default']);
 });
 
 gulp.task('default', ['babel', 'useref']);
