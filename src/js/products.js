@@ -205,6 +205,7 @@ var productsController = function() {
 
     return {
         addRows: addRows,
+        changeSort: changeSort,
         load: load,
         pending: pending,
         pendingAction: pendingAction,
